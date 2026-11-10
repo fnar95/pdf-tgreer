@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة توثيق الفعالية المدرسية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Arabic Fonts (Cairo & Tajawal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- html2pdf Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        * {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+        }
+
+        /* Printable Sheet Styling - A4 Dimensions */
+        .pdf-page {
+            width: 210mm;
+            min-height: 297mm;
+            max-height: 297mm;
+            padding: 10mm 12mm;
+            background: white;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        /* Pure Text Title with simple CSS to prevent letter reversing in HTML2PDF */
+        .report-header-title {
+            background-color: #047857;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 6px 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 800;
+            direction: rtl;
+            unicode-bidi: isolate;
+            letter-spacing: normal !important;
+            word-spacing: normal !important;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .pdf-page {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-slate-900 text-white py-4 px-6 shadow-md no-print">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-600 p-2.5 rounded-xl shadow">
+                    <i class="fa-solid fa-file-invoice text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">منصة توثيق الفعاليات المدرسية</h1>
+                    <p class="text-xs text-slate-400">فكرة و تصميم تلميذكم فاضل المبارك | تابعني على تويتر @FNAR9595</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="restoreDefaults()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> استعادة البيانات الافتراضية
+                </button>
+                <button onclick="exportToPDF()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf text-lg"></i> تصدير التقرير PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+        
+        <!-- Input Form (Right Side) -->
+        <section class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 no-print h-fit">
+            <div class="border-b pb-3 flex items-center justify-between">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-emerald-600"></i> بيانات التقرير
+                </h2>
+                <span class="text-xs text-slate-500">قم بتعئبة الحقول أدناه</span>
+            </div>
+
+            <!-- Header Info Fields -->
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">الإدارة التعليمية والمدرسة</label>
+                    <textarea id="input-school-info" rows="2" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">اسم الفعالية / البرنامج</label>
+                    <input type="text" id="input-title" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+                </div>
+            </div>
+
+            <!-- Execution & Target Info -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المنفذون</label>
+                    <input type="text" id="input-executors" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المشاركون</label>
+                    <input type="text" id="input-participants" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">مكان التنفيذ</label>
+                    <input type="text" id="input-location" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">مدة التنفيذ</label>
+                    <input type="text" id="input-duration" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">تاريخ التنفيذ</label>
+                    <input type="text" id="input-date" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المجال</label>
+                    <input type="text" id="input-domain" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">المستهدفون وعددهم</label>
+                <input type="text" id="input-target" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()">
+            </div>
+
+            <!-- Objectives & Steps -->
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">الأهداف</label>
+                    <textarea id="input-objectives" rows="3" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">خطوات التنفيذ / الوصف</label>
+                    <textarea id="input-steps" rows="3" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()"></textarea>
+                </div>
+            </div>
+
+            <!-- Signatures -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">وظيفة واسم التوقيع الأول</label>
+                    <textarea id="input-sig1" rows="2" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">وظيفة واسم التوقيع الثاني</label>
+                    <textarea id="input-sig2" rows="2" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" oninput="updateReport()"></textarea>
+                </div>
+            </div>
+
+            <!-- Link and Barcode -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">رابط الشواهد (سيتم إنشاء البار كود تلقائياً)</label>
+                <input type="text" id="input-link" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="https://..." oninput="updateReport()">
+            </div>
+
+            <!-- Image Upload Section -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">صور الشواهد والتوثيق (حتى 4 صور)</label>
+                <input type="file" id="image-input" accept="image/*" multiple onchange="handleImages(event)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                
+                <div id="image-previews" class="grid grid-cols-4 gap-2 mt-3">
+                    <!-- Image Thumbs Preview Here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- A4 Report Live Preview (Left Side) -->
+        <section class="lg:col-span-7 flex flex-col items-center justify-start overflow-x-auto p-2 bg-slate-200 rounded-2xl shadow-inner border border-slate-300">
+            <div class="text-xs font-bold text-slate-500 mb-2 no-print flex items-center gap-1">
+                <i class="fa-solid fa-eye text-emerald-600"></i> معاينة ورقة A4 التفاعلية
+            </div>
+
+            <!-- Document Printable Area -->
+            <div id="report-printable" class="pdf-page shadow-2xl rounded-sm">
+                
+                <!-- Page Top Header -->
+                <div>
+                    <div class="flex justify-between items-start border-b-2 border-emerald-700 pb-3 mb-3">
+                        <div id="view-school-info" class="text-xs font-extrabold leading-relaxed text-slate-800 whitespace-pre-line">
+                            الإدارة العامة للتعليم بالمنطقة
+                            مدرسة الأمل الإبتدائية
+                        </div>
+                        <div class="text-center">
+                            <div class="w-10 h-10 bg-emerald-700 text-white rounded-lg flex items-center justify-center mx-auto mb-1">
+                                <i class="fa-solid fa-school text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="text-left text-[10px] text-slate-500 leading-tight">
+                            <div>التاريخ: <span id="view-current-date">1446/03/20 هـ</span></div>
+                            <div>التوثيق: DOC-ACT</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Colored Title -->
+                    <div id="view-title" class="report-header-title mb-4">
+                        تقرير الاحتفاء باليوم الوطني 94
+                    </div>
+
+                    <!-- Key Details Grid -->
+                    <div class="grid grid-cols-2 gap-2 text-xs mb-3">
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50">
+                            <span class="font-bold text-emerald-800">المنفذون:</span>
+                            <div id="view-executors" class="font-semibold text-slate-700 mt-1">جميع منسوبي المدرسة</div>
+                        </div>
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50">
+                            <span class="font-bold text-emerald-800">المشاركون:</span>
+                            <div id="view-participants" class="font-semibold text-slate-700 mt-1">أولياء الأمور والطلاب</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50">
+                            <span class="font-bold text-emerald-800">مكان التنفيذ:</span>
+                            <div id="view-location" class="font-semibold text-slate-700 mt-1">فناء المدرسة والمسرح</div>
+                        </div>
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50">
+                            <span class="font-bold text-emerald-800">مدة التنفيذ:</span>
+                            <div id="view-duration" class="font-semibold text-slate-700 mt-1">يوم واحد</div>
+                        </div>
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50">
+                            <span class="font-bold text-emerald-800">تاريخ التنفيذ:</span>
+                            <div id="view-date" class="font-semibold text-slate-700 mt-1">1446/03/20 هـ</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs mb-3">
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50">
+                            <span class="font-bold text-emerald-800">المستهدفون وعددهم:</span>
+                            <div id="view-target" class="font-semibold text-slate-700 mt-1">منسوبو المدرسة والطلاب (250)</div>
+                        </div>
+                        <div class="border border-slate-300 rounded p-2 bg-slate-50">
+                            <span class="font-bold text-emerald-800">المجال:</span>
+                            <div id="view-domain" class="font-semibold text-slate-700 mt-1">المواطنة والقيم الوطنية</div>
+                        </div>
+                    </div>
+
+                    <!-- Objectives & Steps -->
+                    <div class="grid grid-cols-2 gap-2 text-xs mb-3">
+                        <div class="border border-slate-300 rounded p-2 bg-white">
+                            <span class="font-bold text-emerald-800 block border-b pb-1 mb-1">الأهداف:</span>
+                            <div id="view-objectives" class="text-slate-700 whitespace-pre-line leading-relaxed"></div>
+                        </div>
+                        <div class="border border-slate-300 rounded p-2 bg-white">
+                            <span class="font-bold text-emerald-800 block border-b pb-1 mb-1">خطوات التنفيذ / الوصف:</span>
+                            <div id="view-steps" class="text-slate-700 whitespace-pre-line leading-relaxed"></div>
+                        </div>
+                    </div>
+
+                    <!-- Images Attachment Section (Up to 4) -->
+                    <div class="border border-slate-300 rounded p-2 bg-slate-50 mb-3">
+                        <span class="font-bold text-emerald-800 block text-xs mb-2">شواهد وصور الفعالية:</span>
+                        <div id="view-images-grid" class="grid grid-cols-4 gap-2 h-24">
+                            <!-- Image Items Inserted Dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Signatures & QR -->
+                <div class="border-t-2 border-emerald-800 pt-3 mt-auto">
+                    <div class="grid grid-cols-3 gap-3 items-center">
+                        <div class="text-center text-xs">
+                            <div id="view-sig1" class="font-bold text-slate-800 whitespace-pre-line"></div>
+                            <div class="mt-6 border-b border-dashed border-slate-400 w-3/4 mx-auto"></div>
+                        </div>
+                        
+                        <!-- QR Code -->
+                        <div class="text-center flex flex-col items-center">
+                            <img id="view-qr" src="" class="w-16 h-16 border p-1 rounded bg-white shadow-sm hidden">
+                            <span class="text-[9px] text-slate-500 mt-1">رابط الشواهد الإليكترونية</span>
+                        </div>
+
+                        <div class="text-center text-xs">
+                            <div id="view-sig2" class="font-bold text-slate-800 whitespace-pre-line"></div>
+                            <div class="mt-6 border-b border-dashed border-slate-400 w-3/4 mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Page Footer (Rights & Links) -->
+    <footer class="bg-slate-900 text-white py-4 px-6 text-center text-xs no-print border-t border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-slate-400">
+                فكرة وتصميم تلميذكم <span class="text-emerald-400 font-bold">فاضل المبارك</span>
+            </div>
+            <a href="https://x.com/Fnar9595" target="_blank" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold px-3 py-1.5 rounded-full transition flex items-center gap-1.5 shadow">
+                <i class="fa-brands fa-x-twitter"></i> تابعني على تويتر @FNAR9595
+            </a>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // Placeholder Images SVG (Valid Inline Base64 Data URL to prevent loading issues)
+        const sampleImage = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'><rect width='100%' height='100%' fill='%23e2e8f0'/><text x='50%' y='50%' font-family='sans-serif' font-size='14' fill='%2364748b' text-anchor='middle' dy='.3em'>شاهد الفعالية</text></svg>";
+
+        let uploadedImages = [sampleImage, sampleImage];
+
+        const defaultData = {
+            schoolInfo: "الإدارة العامة للتعليم بالمنطقة\nمدرسة الأمل الإبتدائية",
+            title: "تقرير الاحتفاء باليوم الوطني 94",
+            executors: "جميع منسوبي المدرسة",
+            participants: "أولياء الأمور والطلاب",
+            location: "فناء المدرسة والمسرح",
+            duration: "يوم واحد",
+            date: "1446/03/20 هـ",
+            target: "منسوبو المدرسة والطلاب (250)",
+            domain: "المواطنة والقيم الوطنية",
+            objectives: "1. تعزيز الهوية الوطنية والانتماء للوطن.\n2. ترسيخ قيم التماسك والتآخي بين كافة الطلاب.\n3. الاعتزاز بالدين الإسلامي الحنيف والتاريخ.",
+            steps: "1. إذاعة صباحية متنوعة عن اليوم الوطني.\n2. عمل مسابقات ثقاقية ورسم وعروض.\n3. إلقاء قصائد بمشاركة الطلاب والمعلمين.\n4. تكريم المشاركين وتوزيع شهادات الشكر.",
+            sig1: "رائد النشاط\n الأستاذ: أحمد علي",
+            sig2: "مدير المدرسة\n الأستاذ: خالد محمد",
+            link: "https://drive.google.com"
+        };
+
+        // Initialize App Data
+        function initApp() {
+            restoreDefaults();
+        }
+
+        function restoreDefaults() {
+            document.getElementById('input-school-info').value = defaultData.schoolInfo;
+            document.getElementById('input-title').value = defaultData.title;
+            document.getElementById('input-executors').value = defaultData.executors;
+            document.getElementById('input-participants').value = defaultData.participants;
+            document.getElementById('input-location').value = defaultData.location;
+            document.getElementById('input-duration').value = defaultData.duration;
+            document.getElementById('input-date').value = defaultData.date;
+            document.getElementById('input-target').value = defaultData.target;
+            document.getElementById('input-domain').value = defaultData.domain;
+            document.getElementById('input-objectives').value = defaultData.objectives;
+            document.getElementById('input-steps').value = defaultData.steps;
+            document.getElementById('input-sig1').value = defaultData.sig1;
+            document.getElementById('input-sig2').value = defaultData.sig2;
+            document.getElementById('input-link').value = defaultData.link;
+
+            uploadedImages = [sampleImage, sampleImage];
+            renderImagePreviews();
+            updateReport();
+        }
+
+        function updateReport() {
+            document.getElementById('view-school-info').innerText = document.getElementById('input-school-info').value || '---';
+            document.getElementById('view-title').innerText = document.getElementById('input-title').value || '---';
+            document.getElementById('view-executors').innerText = document.getElementById('input-executors').value || '---';
+            document.getElementById('view-participants').innerText = document.getElementById('input-participants').value || '---';
+            document.getElementById('view-location').innerText = document.getElementById('input-location').value || '---';
+            document.getElementById('view-duration').innerText = document.getElementById('input-duration').value || '---';
+            document.getElementById('view-date').innerText = document.getElementById('input-date').value || '---';
+            document.getElementById('view-target').innerText = document.getElementById('input-target').value || '---';
+            document.getElementById('view-domain').innerText = document.getElementById('input-domain').value || '---';
+            document.getElementById('view-objectives').innerText = document.getElementById('input-objectives').value || '---';
+            document.getElementById('view-steps').innerText = document.getElementById('input-steps').value || '---';
+            document.getElementById('view-sig1').innerText = document.getElementById('input-sig1').value || '---';
+            document.getElementById('view-sig2').innerText = document.getElementById('input-sig2').value || '---';
+
+            // QR Generation
+            const link = document.getElementById('input-link').value.trim();
+            const qrImg = document.getElementById('view-qr');
+            if (link) {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link)}`;
+                qrImg.classList.remove('hidden');
+            } else {
+                qrImg.classList.add('hidden');
+            }
+
+            renderReportImages();
+        }
+
+        function handleImages(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+
+            files.slice(0, 4 - uploadedImages.length).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (uploadedImages.length < 4) {
+                        uploadedImages.push(event.target.result);
+                        renderImagePreviews();
+                        renderReportImages();
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        }
+
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            renderImagePreviews();
+            renderReportImages();
+        }
+
+        function renderImagePreviews() {
+            const container = document.getElementById('image-previews');
+            container.innerHTML = '';
+            uploadedImages.forEach((imgSrc, idx) => {
+                container.innerHTML += `
+                    <div class="relative group border rounded-lg overflow-hidden h-14 bg-slate-100">
+                        <img src="${imgSrc}" class="w-full h-full object-cover">
+                        <button onclick="removeImage(${idx})" class="absolute inset-0 bg-red-600/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function renderReportImages() {
+            const container = document.getElementById('view-images-grid');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                if (uploadedImages[i]) {
+                    container.innerHTML += `
+                        <div class="border rounded bg-white overflow-hidden h-full flex items-center justify-center p-0.5">
+                            <img src="${uploadedImages[i]}" class="w-full h-full object-cover rounded-sm">
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML += `
+                        <div class="border border-dashed border-slate-300 rounded bg-slate-100 flex items-center justify-center h-full text-[10px] text-slate-400">
+                            صورة شاهد ${i + 1}
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function exportToPDF() {
+            const element = document.getElementById('report-printable');
+            
+            const opt = {
+                margin:       0,
+                filename:     'تقرير_توثيق_الفعالية.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
